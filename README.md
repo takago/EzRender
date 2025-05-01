@@ -39,25 +39,31 @@ python ezrender.py MODEL_FILE [オプション]
 
 ### 使用例
 
-#### 1. モデル中心から距離 3.0、方位角 45 度で画像を表示（保存しない）
+#### 1. マルチビュー画像の表示
+
+```bash
+python ezrender.py model.glb
+```
+
+#### 2. モデル中心から距離 3.0、方位角 45 度で画像を表示（保存しない）
 
 ```bash
 python ezrender.py model.glb --distance 3.0 --angle 45
 ```
 
-#### 2. カメラ位置を x=1, y=2, z=3 で指定し、画像を保存（表示なし）
+#### 3. カメラ位置を x=1, y=2, z=3 で指定し、画像を保存（表示なし）
 
 ```bash
 python ezrender.py model.obj --cam-xyz 1.0,2.0,3.0 --output output.webp --no-view
 ```
 
-#### 3. 出力画像サイズを 1024x768 に指定して保存
+#### 4. 出力画像サイズを 1024x768 に指定して保存
 
 ```bash
 python ezrender.py model.obj --cam-xyz 0.5,1.5,2.0 --output view.webp --size 1024x768
 ```
 
-#### 4. モデル情報を表示（メッシュ数、頂点数、色情報など）
+#### 5. モデル情報を表示（メッシュ数、頂点数、色情報など）
 
 ```bash
 python ezrender.py model.glb --info
