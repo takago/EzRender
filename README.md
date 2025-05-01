@@ -2,7 +2,6 @@
 
 **ezrender** は `.glb` や `.obj` 形式の 3Dモデルを、コマンドラインから簡単にレンダリングし、静止画像として保存・表示できる Python スクリプトです。表示は timg を使ってターミナル内に表示しますので、ちょっとした確認に便利かと思います。
 
-<img src="screenshot.webp" alt="ss" width="400">
 ## 特長
 
 - `.obj` / `.glb` に対応
@@ -11,6 +10,8 @@
 - `timg` コマンドを使って即時プレビュー表示（mlterm や wezterm などのSixel対応端末が必要）
 - 出力サイズの指定（デフォルト512x512）
 - ヘッドレス（X不要）でのGPUレンダリングが可能（EGL使用）
+
+<img src="image/screenshot.webp" alt="ss" width="400">
 
 ## インストール
 
