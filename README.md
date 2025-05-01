@@ -5,6 +5,7 @@
 
 `timg` を使用してターミナル内で画像を表示できるため、簡易的な確認に便利です。
 
+<img src="image/screenshot.webp" alt="ss" width="400">
 ---
 
 ## 特長
