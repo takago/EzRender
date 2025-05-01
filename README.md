@@ -40,7 +40,7 @@ python ezrender.py model.glb --distance 3.0 --angle 45 --view
 python ezrender.py model.obj --cam-xyz 1.0,2.0,3.0 --output output.webp
 ```
 
-#### 3. 上記のカメラ位置で画像を保存し、さらに表示もする
+#### 3. カメラ位置をx=1, y=2, z=3で指定し、画像を保存（表示あり）
 
 ```bash
 python ezrender.py model.obj --cam-xyz 1.0,2.0,3.0 --output output.webp --view
