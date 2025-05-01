@@ -106,7 +106,8 @@ def main():
         sys.exit(1)
 
     tri_scene = load_model(args.model_file)
-    scene = pyrender.Scene.from_trimesh_scene(tri_scene)
+    scene = pyrender.Scene.from_trimesh_scene(tri_scene, bg_color=[0.5, 0.5, 0.5, 1.0]) # 背景は灰色に
+    # scene = pyrender.Scene.from_trimesh_scene(tri_scene)
     center = tri_scene.centroid
 
     # === カメラ位置決定 ===
