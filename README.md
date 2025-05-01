@@ -7,6 +7,8 @@
 
 <img src="image/screenshot.webp" alt="ss" width="600">
 ---
+## 既知の問題
+--info による Color Attribution 情報がテキトウ（...もっとよく勉強してから直します）
 
 ## 特長
 
