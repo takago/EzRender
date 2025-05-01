@@ -7,7 +7,7 @@
 - `.obj` / `.glb` に対応
 - カメラの位置を極座標（距離と角度）または x,y,z で指定可能
 - WebP形式での画像保存
-- `timg` による即時プレビュー表示（オプション）
+- `timg` による即時プレビュー表示（mlterm や wezterm などのSixel対応端末が必要）
 - 出力サイズの指定（デフォルト512x512）
 - ヘッドレス（X不要）でのGPUレンダリングが可能（EGL使用）
 
@@ -16,6 +16,7 @@
 以下をインストールしてください：
 
 ```bash
+sudo apt-get install timg
 pip install trimesh pyrender PyOpenGL Pillow
 ```
 
