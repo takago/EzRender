@@ -1,3 +1,4 @@
+#!/home/< USER >/miniconda3/envs/< CONDA_ENV >/bin/python
 
 import os
 os.environ["PYOPENGL_PLATFORM"] = "egl"
