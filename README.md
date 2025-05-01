@@ -109,4 +109,10 @@ python ezrender.py model.glb --info
 
 ## ライセンス
 
-MIT
+MIT License（[LICENSE](./LICENSE) を参照）
+
+---
+
+© 2025 Daisuke TAKAGO
+
+
