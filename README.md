@@ -24,7 +24,8 @@
 
 ## ファイル説明
 - ezrender.py ... 3Dデータをターミナルに表示・保存するプログラム 
-- obj2glb.py （おまけ） ... 問題がある頂点カラーOBJを修復してGLBで保存するプログラム（[Era3D](https://github.com/pengHTYX/Era3D)で出力されるobjを修復する．テキトウに作ったのでこれでよいのかは不明）
+- utils/e3d_objfix （おまけ）... [Era3D](https://github.com/pengHTYX/Era3D) のinstant-nsr-pl で出力されるrefine_###.objを修復してアーティファクトが発生しないようにするツール
+- util/srgb2linobj.py（おまけ）... SRGB頂点カラーOBJ → LiearRGB頂点カラーOBJ 
 
 ---
 
