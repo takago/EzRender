@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+'''
+はじめに
+(1) https://github.com/pengHTYX/Era3D のConda環境は自分で構築してください．
+(2) 本スクリプトでは背景除去に
+ https://github.com/liuyuan-pal/SyncDreamer の foreground_segment.py  
+ を利用していますが，そのファイルが無い場合はEra3Dの環境構築時に導入される rembg を使います．
+(3) 3Dモデルの生成が完了すると，Era3Dのトップディレクトリ下に，latest-output というリンクができます．
+'''
 
 import subprocess
 import os
