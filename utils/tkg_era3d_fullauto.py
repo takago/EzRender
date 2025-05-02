@@ -1,12 +1,41 @@
 #!/usr/bin/env python3
-'''
-はじめに
-(1) https://github.com/pengHTYX/Era3D のConda環境は自分で構築してください．
-(2) 本スクリプトでは背景除去に
- https://github.com/liuyuan-pal/SyncDreamer の foreground_segment.py  
- を利用していますが，そのファイルが無い場合はEra3Dの環境構築時に導入される rembg を使います．
-(3) 3Dモデルの生成が完了すると，Era3Dのトップディレクトリ下に，latest-output というリンクができます．
-'''
+
+"""
+tkg_era3d_fullauto.py - Era3D全自動処理スクリプト
+
+概要:
+このスクリプトは Era3D の処理を自動で実行します：
+  1. 背景除去（foreground_segment.py* または rembg を使用）
+     *... https://github.com/liuyuan-pal/SyncDreamer の foreground_segment.py  
+  2. 多視点画像生成（test_mvdiffusion_unclip.py）
+  3. 画像プレビュー（timg）
+  4. Instant-NSR によるメッシュ再構成
+  5. メッシュ修復（e3d_objfix.py、未取得なら自動ダウンロード）
+  6. 最新出力ディレクトリへのシンボリックリンク更新
+
+
+使い方:
+    python tkg_era3d_fullauto.py --input ./input.png --output-name output_base
+
+必要な環境:
+    - Conda 環境 `era3d`（miniconda3/envs/era3d にあると仮定）
+    - rembg（pip install rembg）
+    - timg（画像プレビュー用）
+    - wget（e3d_objfix.py の自動取得に使用）
+
+オプション:
+    --input        背景除去対象の入力画像（PNGなど）
+    --output-name  出力に使うベース名（例：xxx → xxx.obj, xxx.png, ...）
+
+注意:
+    - examples ディレクトリは毎回初期化されます。
+    - CUDA + PyTorch が動作する GPU 環境が前提です。
+    - launch.py 実行時の出力先ディレクトリは日付付きで自動生成されます。
+
+GitHub:
+    https://github.com/takago/EzRender
+    
+"""
 
 import subprocess
 import os
