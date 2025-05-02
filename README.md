@@ -24,9 +24,10 @@
 
 ## ファイル説明
 - ezrender.py ... 3Dデータをターミナルに表示・保存するプログラム
-- util/srgb2linobj.py（おまけ）... SRGB頂点カラーOBJ → LiearRGB頂点カラーOBJ
-- utils/e3d_objfix （おまけ）... [Era3D](https://github.com/pengHTYX/Era3D) のinstant-nsr-pl で出力されるrefine_###.objを修復してアーティファクトが発生しないようにするツール（アーティファクトの原因を調べるが大変でした・・・）
-- util/tkg_era3d_fullauto.py （おまけ） ... [Era3D](https://github.com/pengHTYX/Era3D) を簡単に実行するためのスクリプト（Era3DはConda環境で作成していることを想定）．
+- おまけ(→ utils内のプログラム)
+  - srgb2linobj.py... SRGB頂点カラーOBJ → LiearRGB頂点カラーOBJ
+  - e3d_objfix.py ... [Era3D](https://github.com/pengHTYX/Era3D) のinstant-nsr-pl で出力されるrefine_###.objを修復してアーティファクトが発生しないようにするツール（アーティファクトの原因を調べるが大変でした・・・）
+  - tkg_era3d_fullauto.py ... [Era3D](https://github.com/pengHTYX/Era3D) を簡単に実行するためのスクリプト（Era3DはConda環境で作成していることを想定）．
 
 ---
 
