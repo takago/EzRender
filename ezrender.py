@@ -6,9 +6,40 @@ os.environ["PYOPENGL_PLATFORM"] = "egl"
 import sys
 import argparse
 import numpy as np
+import tempfile
 import trimesh
 import pyrender
 from PIL import Image
+
+def srgb_to_linear(c):
+    c = np.clip(c, 0.0, 1.0)
+    return np.where(
+        c <= 0.04045,
+        c / 12.92,
+        ((c + 0.055) / 1.055) ** 2.4
+    )
+
+def convert_obj_srgb_to_linear(input_path):
+    temp_fd, temp_path = tempfile.mkstemp(suffix=".obj")
+    os.close(temp_fd)
+    with open(input_path, 'r') as fin, open(temp_path, 'w') as fout:
+        for line in fin:
+            if line.startswith('v '):
+                parts = line.strip().split()
+                if len(parts) == 7:
+                    try:
+                        r, g, b = map(float, parts[4:7])
+                        rgb = np.array([r, g, b])
+                        linear = srgb_to_linear(rgb)
+                        newline = f"v {parts[1]} {parts[2]} {parts[3]} {linear[0]:.6f} {linear[1]:.6f} {linear[2]:.6f}\n"
+                        fout.write(newline)
+                    except:
+                        fout.write(line)
+                else:
+                    fout.write(line)
+            else:
+                fout.write(line)
+    return temp_path
 
 def look_at_view_matrix(eye, target, up=[0, 1, 0]):
     forward = np.array(target) - np.array(eye)
@@ -112,7 +143,18 @@ def main():
         print("File not found:", args.model_file)
         sys.exit(1)
 
-    tri_scene = load_model(args.model_file)
+    temp_file = None
+    model_file = args.model_file
+    if model_file.lower().endswith(".obj"):
+        try:
+            temp_file = convert_obj_srgb_to_linear(model_file)
+            print(f"🎨 Converted OBJ sRGB → Linear: {temp_file}")
+            model_file = temp_file
+        except Exception as e:
+            print("❌ OBJ変換に失敗しました:", e)
+            sys.exit(1)
+
+    tri_scene = load_model(model_file)
     center = tri_scene.centroid
     scale = np.linalg.norm(tri_scene.extents)
     width, height = args.size
@@ -167,6 +209,9 @@ def main():
         os.remove(tmpfile)
     elif not args.output:
         print("⚠️ No output or view specified. Use --output or omit --no-view to preview.")
+
+    if temp_file and os.path.exists(temp_file):
+        os.remove(temp_file)
 
 if __name__ == "__main__":
     main()
