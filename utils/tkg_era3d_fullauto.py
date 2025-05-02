@@ -15,7 +15,8 @@ tkg_era3d_fullauto.py - Era3D全自動処理スクリプト
 
 
 使い方:
-    python tkg_era3d_fullauto.py --input ./input.png --output-name output_base
+  (1) コード中の HOME_DIR，CONDA_ENV_DIR，ERA3D_DIR を適宜修正
+  (2) python tkg_era3d_fullauto.py --input ./input.png --output-name output_base
 
 必要な環境:
     - Conda 環境 `era3d`（miniconda3/envs/era3d にあると仮定）
