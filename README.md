@@ -32,7 +32,7 @@
 
 ```bash
 sudo apt-get install timg
-pip install trimesh pyrender PyOpenGL Pillow tabulate
+pip install trimesh==4.6.8 pyrender==0.1.45 PyOpenGL Pillow tabulate
 ```
 
 ---
