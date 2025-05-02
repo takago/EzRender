@@ -13,18 +13,14 @@ tkg_era3d_fullauto.py - Era3D全自動処理スクリプト
   5. メッシュ修復（e3d_objfix.py、未取得なら自動ダウンロード）
   6. 最新出力ディレクトリへのシンボリックリンク更新
 
+必要な環境:
+    - Conda 環境 `era3d`（miniconda3/envs/era3d にあると仮定）
+    - timg（画像プレビュー用）
+    - wget（e3d_objfix.py の自動取得に使用）
 
 使い方:
   (1) コード中の HOME_DIR，CONDA_ENV_DIR，ERA3D_DIR を適宜修正
   (2) python tkg_era3d_fullauto.py --input ./input.png --output-name output_base
-
-必要な環境:
-    - Conda 環境 `era3d`（miniconda3/envs/era3d にあると仮定）
-    - rembg（pip install rembg）
-    - timg（画像プレビュー用）
-    - wget（e3d_objfix.py の自動取得に使用）
-
-オプション:
     --input        背景除去対象の入力画像（PNGなど）
     --output-name  出力に使うベース名（例：xxx → xxx.obj, xxx.png, ...）
 
