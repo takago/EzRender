@@ -28,7 +28,7 @@
   - srgb2linobj.py... SRGB頂点カラーOBJ → LiearRGB頂点カラーOBJ
   - e3d_objfix.py ... [Era3D](https://github.com/pengHTYX/Era3D) のinstant-nsr-pl で出力されるrefine_###.objを修復してアーティファクトが発生しないようにするツール（アーティファクトの原因を調べるが大変でした・・・）
   - tkg_era3d_fullauto.py ... [Era3D](https://github.com/pengHTYX/Era3D) を簡単に実行するためのスクリプト（Era3DはConda環境で作成していることを想定）．
-
+  - vc2texobj.py ... 頂点カラーOBJをUVテクスチャOBJにする．
 ---
 
 ## インストール
