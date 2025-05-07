@@ -28,7 +28,8 @@
   - srgb2linobj.py... SRGB頂点カラーOBJ → LiearRGB頂点カラーOBJ
   - e3d_objfix.py ... [Era3D](https://github.com/pengHTYX/Era3D) のinstant-nsr-pl で出力されるrefine_###.objを修復してアーティファクトが発生しないようにするツール（アーティファクトの原因を調べるが大変でした・・・）
   - tkg_era3d_fullauto.py ... [Era3D](https://github.com/pengHTYX/Era3D) を簡単に実行するためのスクリプト（Era3DはConda環境で作成していることを想定）．
-  - vc2texobj.py ... 頂点カラーOBJをUVテクスチャOBJにする．
+  - vc2texobj.py ... 頂点カラーOBJをUVテクスチャOBJにする（pymeshlabで，UV展開・頂点カラーをテクスチャにベイク）．
+  - vc2glb.py    ... 頂点カラーOBJをGLBにする（pyxatlasでスマートUV展開して，pymeshlabで頂点カラーをベイク）．
 ---
 
 ## インストール
@@ -36,6 +37,8 @@
 ```bash
 sudo apt-get install timg
 pip install trimesh==4.6.8 pyrender==0.1.45 PyOpenGL Pillow tabulate
+pip install pymeshlab==2023.12.post3
+pip install https://github.com/mworchel/xatlas-python.git
 ```
 
 ---
