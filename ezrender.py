@@ -106,6 +106,44 @@ def print_scene_info(scene):
         table.append(row)
     print(tabulate(table, headers=headers, tablefmt="grid"))
 
+def print_3dgs_info(path):
+    """Inspect a 3DGS PLY header without reading Gaussian data or initializing GL."""
+    with open(path, "rb") as f:
+        if f.readline().strip() != b"ply":
+            raise ValueError("Not a PLY file")
+        fmt = None
+        element = None
+        count = None
+        fields = []
+        while True:
+            line = f.readline()
+            if not line:
+                raise ValueError("Truncated PLY header")
+            tokens = line.decode("ascii").split()
+            if not tokens:
+                continue
+            if tokens[0] == "format" and len(tokens) >= 2:
+                fmt = tokens[1]
+            elif tokens[0] == "element" and len(tokens) >= 3:
+                element = tokens[1]
+                if element == "vertex":
+                    count = int(tokens[2])
+            elif tokens[0] == "property" and element == "vertex":
+                if len(tokens) < 3 or tokens[1] == "list":
+                    raise ValueError("Unsupported PLY vertex property")
+                fields.append(tokens[2])
+            elif tokens[0] == "end_header":
+                break
+    if fmt not in ("ascii", "binary_little_endian", "binary_big_endian"):
+        raise ValueError(f"Unsupported PLY format: {fmt}")
+    if count is None:
+        raise ValueError("No vertex element in PLY")
+    print("3D Gaussian Splatting Information")
+    print(f"Gaussians: {count:,}")
+    print(f"PLY format: {fmt}")
+    print(f"Fields ({len(fields)}): {', '.join(fields)}")
+
+
 def render_image(scene, pose, width, height, intensity):
     camera = pyrender.PerspectiveCamera(yfov=np.pi / 6.0)
     camera_node = scene.add(camera, pose=pose)
@@ -152,6 +190,22 @@ def main():
         print("File not found:", args.model_file)
         sys.exit(1)
 
+    # --info is inspection-only: no rendering, preview, or image output.
+    if args.info:
+        if args.three_dgs:
+            if not args.model_file.lower().endswith(".ply"):
+                parser.error("--3dgs requires a .ply file")
+            try:
+                print_3dgs_info(args.model_file)
+            except (OSError, ValueError, UnicodeDecodeError) as exc:
+                parser.exit(1, f"Failed to read 3DGS information: {exc}\n")
+        else:
+            try:
+                print_scene_info(load_model(args.model_file))
+            except (OSError, ValueError) as exc:
+                parser.exit(1, f"Failed to read model information: {exc}\n")
+        return
+
     # Gaussian PLY uses its own renderer; do not send splats to trimesh/pyrender.
     if args.three_dgs:
         if not args.model_file.lower().endswith(".ply"):
@@ -178,10 +232,6 @@ def main():
             for i, frame in enumerate(frames):
                 img.paste(frame, (i * width, 0))
         print(f"Render time: {time.monotonic()-start:.2f}s")
-        if args.info:
-            from gs_renderer import read_ply
-            props = read_ply(args.model_file)
-            print(f"Gaussians: {len(props['x']):,}; fields: {', '.join(props)}")
         if args.output:
             out = args.output if args.output.lower().endswith(".webp") else args.output + ".webp"
             img.save(out)
@@ -213,14 +263,6 @@ def main():
     center = tri_scene.centroid
     scale = np.linalg.norm(tri_scene.extents)
     width, height = args.size
-
-    if args.info:
-        try:
-            import tabulate
-        except ImportError:
-            print("The 'tabulate' module is required for --info output. Install it with: pip install tabulate")
-            sys.exit(1)
-        print_scene_info(tri_scene)
 
     intensity = args.light_intensity if args.light_intensity is not None else scale * 10.0
     if args.light_intensity is None:
