@@ -7,6 +7,7 @@ import sys
 import argparse
 import numpy as np
 import tempfile
+import subprocess
 import trimesh
 import pyrender
 from PIL import Image
@@ -58,12 +59,6 @@ def load_model(path):
     loaded = trimesh.load(path)
     return loaded if isinstance(loaded, trimesh.Scene) else trimesh.Scene(loaded)
 
-def spherical_camera_position(center, distance, angle_deg):
-    theta = np.radians(angle_deg)
-    x = distance * np.cos(theta)
-    z = distance * np.sin(theta)
-    y = distance * 0.1
-    return center + np.array([x, y, z])
 
 def parse_xyz(text):
     try:
@@ -123,25 +118,85 @@ def render_image(scene, pose, width, height, intensity):
     scene.remove_node(light_node)
     return Image.fromarray(color, mode="RGBA")
 
+from orbit_camera import orbit_view
+
 def main():
     parser = argparse.ArgumentParser(description="Render a 3D model to a still image")
-    parser.add_argument("model_file", help="3D model file (.obj or .glb)")
+    parser.add_argument("model_file", help="3D model file (.obj, .glb, or 3DGS .ply)")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--distance", type=float, help="Distance from model center (spherical)")
     group.add_argument("--cam-xyz", type=parse_xyz, help="Camera position x,y,z")
-    parser.add_argument("--angle", type=float, help="Azimuth angle (degrees)")
+    parser.add_argument("--yaw", type=float, help="Orbit yaw in degrees (0: +Z, 90: +X)")
+    parser.add_argument("--angle", type=float, help=argparse.SUPPRESS)  # Legacy alias
+    parser.add_argument("--roll", type=float, default=0.0, help="Camera roll in degrees (positive: clockwise tilt)")
     parser.add_argument("--output", type=str, help="Output file (.webp)")
     parser.add_argument("--no-view", action="store_true", help="Disable timg preview (default is ON)")
     parser.add_argument("--info", action="store_true", help="Display model information")
     parser.add_argument("--size", type=parse_size, default=(512, 512), help="Output size WIDTHxHEIGHT (default: 512x512)")
-    parser.add_argument("--light-intensity", type=float, help="Light intensity (auto if omitted)")
+    parser.add_argument("--light-intensity", type=float, help="Light intensity (auto if omitted; mesh only)")
+    parser.add_argument("--pitch", type=float, default=None, help="Camera elevation in degrees (positive: from above)")
+    parser.add_argument("--3dgs", dest="three_dgs", action="store_true", help="Interpret a PLY file as 3D Gaussian Splatting")
+    parser.add_argument("--fov", type=float, default=30, help="3DGS vertical field of view (degrees)")
+    parser.add_argument("--max-gaussians", type=int, help="Limit 3DGS Gaussian count for previews")
 
     args = parser.parse_args()
+    if args.angle is not None:
+        if args.yaw is not None:
+            parser.error("--yaw and legacy --angle cannot be combined")
+        args.yaw = args.angle
+    if args.pitch is not None and not -90 <= args.pitch <= 90:
+        parser.error("--pitch must be within [-90, 90]")
     show_view = not args.no_view
 
     if not os.path.exists(args.model_file):
         print("File not found:", args.model_file)
         sys.exit(1)
+
+    # Gaussian PLY uses its own renderer; do not send splats to trimesh/pyrender.
+    if args.three_dgs:
+        if not args.model_file.lower().endswith(".ply"):
+            parser.error("--3dgs requires a .ply file")
+        from gs_gl import render as render_gaussians
+        import time
+        width, height = args.size
+        if args.cam_xyz is not None:
+            parser.error("--cam-xyz is not yet supported for 3DGS; use --yaw/--pitch/--distance")
+        if args.light_intensity is not None:
+            parser.error("--light-intensity applies to meshes only (3DGS has baked colors)")
+        angles = [args.yaw] if (args.yaw is not None or args.distance is not None or args.pitch is not None or args.roll != 0) else [0, 90, 180, 270]
+        if angles == [None]:
+            angles = [0]
+        start = time.monotonic()
+        frames = [render_gaussians(args.model_file, yaw=a, pitch=args.pitch if args.pitch is not None else 0, roll=args.roll,
+                                  distance=args.distance, width=width, height=height,
+                                  max_gaussians=args.max_gaussians, fov=args.fov)
+                  for a in angles]
+        if len(frames) == 1:
+            img = frames[0]
+        else:
+            img = Image.new("RGB", (width * len(frames), height))
+            for i, frame in enumerate(frames):
+                img.paste(frame, (i * width, 0))
+        print(f"Render time: {time.monotonic()-start:.2f}s")
+        if args.info:
+            from gs_renderer import read_ply
+            props = read_ply(args.model_file)
+            print(f"Gaussians: {len(props['x']):,}; fields: {', '.join(props)}")
+        if args.output:
+            out = args.output if args.output.lower().endswith(".webp") else args.output + ".webp"
+            img.save(out)
+            print("Image saved:", out)
+        if show_view:
+            with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as tmp:
+                preview_path = tmp.name
+            try:
+                img.save(preview_path)
+                subprocess.run(["timg", preview_path], check=True)
+            finally:
+                os.unlink(preview_path)
+        elif not args.output:
+            print("No output or view specified. Use --output or omit --no-view.")
+        return
 
     temp_file = None
     model_file = args.model_file
@@ -173,23 +228,24 @@ def main():
 
     scene = pyrender.Scene.from_trimesh_scene(tri_scene, bg_color=[0.5, 0.5, 0.5, 1.0])
 
-    if args.cam_xyz is not None or args.distance is not None or args.angle is not None:
-        if args.distance is not None and args.angle is None:
-            args.angle = np.random.uniform(0, 360)
-            print(f"🎯 Random angle assigned: {args.angle:.1f}°")
-        if args.angle is not None and args.distance is None:
+    if args.cam_xyz is not None or args.distance is not None or args.yaw is not None or args.pitch is not None or args.roll != 0:
+        if args.yaw is not None and args.distance is None:
             args.distance = scale * 2.0
             print(f"📏 Auto-set distance: {args.distance:.2f}")
-        eye = args.cam_xyz if args.cam_xyz is not None else spherical_camera_position(center, args.distance, args.angle)
-        view = look_at_view_matrix(eye, center)
+        if args.cam_xyz is None:
+            if args.yaw is None:
+                args.yaw = 0.0
+            if args.distance is None:
+                args.distance = scale * 2.0
+        eye = args.cam_xyz
+        view = look_at_view_matrix(eye, center) if args.cam_xyz is not None else orbit_view(center, args.distance, args.yaw, args.pitch or 0, args.roll)
         camera_pose = np.linalg.inv(view)
         img = render_image(scene, camera_pose, width, height, intensity)
     else:
         angles = [0, 90, 180, 270]
         images = []
         for ang in angles:
-            eye = spherical_camera_position(center, scale * 2.0, ang)
-            view = look_at_view_matrix(eye, center)
+            view = orbit_view(center, scale * 2.0, ang, args.pitch or 0, args.roll)
             pose = np.linalg.inv(view)
             img_piece = render_image(scene, pose, width, height, intensity)
             images.append(img_piece)

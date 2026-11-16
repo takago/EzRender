@@ -1,0 +1,5 @@
+# Optional conversion utilities in utils/ (not needed for EzRender itself)
+-r requirements.txt
+pymeshlab==2023.12.post3
+# xatlas is needed only by utils/vc2glb.py
+xatlas
