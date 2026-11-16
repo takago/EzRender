@@ -46,7 +46,7 @@ Linux（Ubuntu/Debian系）の例です．Python 3.10以降を推奨します．
 sudo apt update
 sudo apt install pipx libegl1 libgl1 timg
 pipx ensurepath
-pipx install git+https://github.com/takago/EzRender.git
+pipx install --force git+https://github.com/takago/EzRender.git
 ```
 
 `pipx ensurepath`の後，PATHへの変更が反映されないときはターミナルを開き直してください．`timg`はターミナル内プレビュー用の任意依存です．`--no-view`で画像を保存するだけなら不要です．3DGSやメッシュの描画にはEGL対応のOpenGL環境が必要です．
