@@ -87,6 +87,49 @@ def load_model(path):
     return loaded if isinstance(loaded, trimesh.Scene) else trimesh.Scene(loaded)
 
 
+def pointcloud_geometries(scene):
+    return [g for g in scene.geometry.values() if isinstance(g, trimesh.points.PointCloud)]
+
+
+def inspect_ply_header(path):
+    with open(path, "rb") as f:
+        if f.readline().strip() != b"ply":
+            raise ValueError("Not a PLY file")
+        fmt = None
+        element = None
+        count = None
+        fields = []
+        while True:
+            line = f.readline()
+            if not line:
+                raise ValueError("Truncated PLY header")
+            tokens = line.decode("ascii").split()
+            if not tokens:
+                continue
+            if tokens[0] == "format" and len(tokens) >= 2:
+                fmt = tokens[1]
+            elif tokens[0] == "element" and len(tokens) >= 3:
+                element = tokens[1]
+                if element == "vertex":
+                    count = int(tokens[2])
+            elif tokens[0] == "property" and element == "vertex":
+                if len(tokens) < 3 or tokens[1] == "list":
+                    raise ValueError("Unsupported PLY vertex property")
+                fields.append(tokens[2])
+            elif tokens[0] == "end_header":
+                break
+    return fmt, count, fields
+
+
+def looks_like_3dgs_ply(path):
+    try:
+        _fmt, _count, fields = inspect_ply_header(path)
+    except (OSError, ValueError, UnicodeDecodeError):
+        return False
+    needed = {"x", "y", "z", "opacity", "scale_0", "scale_1", "scale_2", "rot_0", "rot_1", "rot_2", "rot_3"}
+    return needed.issubset(set(fields))
+
+
 def parse_xyz(text):
     try:
         parts = [float(x.strip()) for x in text.split(",")]
@@ -135,32 +178,7 @@ def print_scene_info(scene):
 
 def print_3dgs_info(path):
     """Inspect a 3DGS PLY header without reading Gaussian data or initializing GL."""
-    with open(path, "rb") as f:
-        if f.readline().strip() != b"ply":
-            raise ValueError("Not a PLY file")
-        fmt = None
-        element = None
-        count = None
-        fields = []
-        while True:
-            line = f.readline()
-            if not line:
-                raise ValueError("Truncated PLY header")
-            tokens = line.decode("ascii").split()
-            if not tokens:
-                continue
-            if tokens[0] == "format" and len(tokens) >= 2:
-                fmt = tokens[1]
-            elif tokens[0] == "element" and len(tokens) >= 3:
-                element = tokens[1]
-                if element == "vertex":
-                    count = int(tokens[2])
-            elif tokens[0] == "property" and element == "vertex":
-                if len(tokens) < 3 or tokens[1] == "list":
-                    raise ValueError("Unsupported PLY vertex property")
-                fields.append(tokens[2])
-            elif tokens[0] == "end_header":
-                break
+    fmt, count, fields = inspect_ply_header(path)
     if fmt not in ("ascii", "binary_little_endian", "binary_big_endian"):
         raise ValueError(f"Unsupported PLY format: {fmt}")
     if count is None:
@@ -291,15 +309,28 @@ def main():
         save_and_preview(img, args.output, show_view)
         return
 
-    import pyrender
     with prepared_model(args.model_file) as model_file:
         tri_scene = load_model(model_file)
+        if pointcloud_geometries(tri_scene):
+            msg = ["Error: The input model was loaded as a point cloud, not a triangle mesh."]
+            if model_file.lower().endswith(".ply"):
+                if looks_like_3dgs_ply(model_file):
+                    msg.append("This PLY looks like a 3D Gaussian Splatting model.")
+                    msg.append("Use --3dgs to render it, for example:")
+                    msg.append(f"  ezrender {args.model_file} --3dgs")
+                else:
+                    msg.append("Point-cloud PLY is not supported by the mesh renderer.")
+                    msg.append("If this file is a 3D Gaussian Splatting model, use --3dgs.")
+            else:
+                msg.append("Please provide a mesh (triangles/faces) or use a supported renderer.")
+            parser.exit(1, "\n".join(msg) + "\n")
         center = tri_scene.centroid
         scale = np.linalg.norm(tri_scene.extents)
         width, height = args.size
         intensity = args.light_intensity if args.light_intensity is not None else scale * 10.0
         if args.light_intensity is None:
             print(f"💡 Auto-set light intensity to {intensity:.1f} based on model scale")
+        import pyrender
         scene = pyrender.Scene.from_trimesh_scene(tri_scene, bg_color=[0.5, 0.5, 0.5, 1.0])
         frames = []
         for yaw in requested_angles(args):
