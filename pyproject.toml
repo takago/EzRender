@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ezrender"
+version = "0.1.0"
+description = "Headless CLI renderer for mesh and 3D Gaussian Splatting models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+dependencies = [
+    "numpy>=1.24,<3",
+    "trimesh==4.6.8",
+    "pyrender==0.1.45",
+    "PyOpenGL>=3.1.0",
+    "Pillow>=10",
+    "moderngl>=5.8",
+    "tabulate>=0.9",
+]
+
+[project.scripts]
+ezrender = "ezrender:main"
+
+[tool.setuptools]
+py-modules = ["ezrender", "orbit_camera", "gs_gl", "gs_renderer"]

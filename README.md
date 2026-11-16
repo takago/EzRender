@@ -34,11 +34,52 @@
   - vc2glb.py    ... 頂点カラーOBJをGLBにする（pyxatlasでスマートUV展開して，pymeshlabで頂点カラーをベイク）．
 ---
 
-## インストール（Python venv）
+## インストール
 
-Linux（Ubuntu/Debian系）の例です．Python 3.10以降を推奨します．
+Linux（Ubuntu/Debian系）の例です．Python 3.10以降を推奨します．普段使いには`pipx`を推奨します．開発時には従来の`venv`も利用できます．
 
-### 1．システム側の準備
+### 推奨：pipxでコマンドとしてインストール
+
+`pipx`はEzRender専用の仮想環境を自動作成し，`ezrender`コマンドをPATHに公開します．リポジトリのcloneや`source .venv/bin/activate`は不要です．Pythonパッケージをシステム環境に直接インストールしません．
+
+```bash
+sudo apt update
+sudo apt install pipx libegl1 libgl1 timg
+pipx ensurepath
+pipx install git+https://github.com/takago/EzRender.git
+```
+
+`pipx ensurepath`の後，PATHへの変更が反映されないときはターミナルを開き直してください．`timg`はターミナル内プレビュー用の任意依存です．`--no-view`で画像を保存するだけなら不要です．3DGSやメッシュの描画にはEGL対応のOpenGL環境が必要です．
+
+インストール後は任意のディレクトリから実行できます．
+
+```bash
+# GLBを4方向から表示
+ezrender model.glb
+
+# 3DGSを4方向から表示
+ezrender model.ply --3dgs
+
+# 角度を指定してWebP保存
+ezrender model.ply --3dgs --yaw 45 --pitch 20 --output view.webp --no-view
+
+# レンダリングせずにモデル情報を確認
+ezrender model.ply --3dgs --info
+```
+
+更新・削除は次のとおりです．
+
+```bash
+pipx upgrade ezrender
+pipx uninstall ezrender
+```
+
+補足：`pipx upgrade ezrender`はインストール元のGitリポジトリを使用して更新します．開発中のローカル変更を試す場合は，下記の`venv`を使ってください．
+
+### 開発用：Python venvで実行
+
+
+#### 1．システム側の準備
 
 ```bash
 sudo apt update
@@ -47,7 +88,7 @@ sudo apt install python3-venv python3-pip libegl1 libgl1
 
 `timg`によるターミナルプレビューを使う場合だけ，`sudo apt install timg`も実行してください．`--no-view`で画像を保存するだけなら不要です．GPUドライバとEGL対応のOpenGL環境は別途必要です．
 
-### 2．仮想環境の作成と依存関係のインストール
+#### 2．仮想環境の作成と依存関係のインストール
 
 ```bash
 git clone https://github.com/takago/EzRender.git
@@ -60,7 +101,7 @@ python -m pip install -r requirements.txt
 
 ZIPを展開して使う場合は`git clone`を省略し，展開先の`EzRender-main`に移動してください．
 
-### 3．実行例
+#### 3．実行例
 
 ```bash
 # GLBの4方向レンダリング
@@ -89,9 +130,19 @@ python -m pip install -r requirements-utils.txt
 
 ## 使い方
 
+pipxでインストールした場合：
+
+```bash
+ezrender MODEL_FILE [オプション]
+```
+
+開発用venvで実行する場合：
+
 ```bash
 python ezrender.py MODEL_FILE [オプション]
 ```
+
+以下の`python ezrender.py`を使った例は，pipx環境では`ezrender`に置き換えられます．
 
 ### 使用例
 
